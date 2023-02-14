@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Col, Form, Modal, Row, Stack } from "react-bootstrap";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { Link } from "react-router-dom";
 import ReactSelect from 'react-select'
+import { auth } from "../firebase";
 import { Note, Tag } from "./App";
 import styles from './NoteList.module.css'
 
@@ -30,6 +32,8 @@ export function NoteList({ availableTags, notes, onUpdateTag, onDeleteTag }: Not
     const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
     const [title, setTitle] = useState<string>("");
     const [editTagsModalIsOpen, setEditTagsModalIsOpen] = useState(false);
+    const [user, loading, error] = useAuthState(auth)
+
 
     const filteredNotes = useMemo(() => {
         return notes.filter(note => {
@@ -45,7 +49,7 @@ export function NoteList({ availableTags, notes, onUpdateTag, onDeleteTag }: Not
                     <Link to="/new">
                         <Button variant="primary">Create</Button>
                     </Link>
-                    <Button onClick={() => setEditTagsModalIsOpen(true)} variant="outline-secondary">Edit Tags</Button>
+                    <Button onClick={() => setEditTagsModalIsOpen(true)} variant="outline-secondary" disabled={user == null}>Edit Tags</Button>
                 </Stack>
             </Col>
         </Row>
@@ -69,11 +73,14 @@ export function NoteList({ availableTags, notes, onUpdateTag, onDeleteTag }: Not
                                     label: tag.label, value: tag.id
                                 }
                             ))}
+
                             onChange={tags => {
+                                if (user == null) return;
                                 setSelectedTags(tags.map(tag => (
                                     {
                                         label: tag.label,
-                                        id: tag.value
+                                        id: tag.value,
+                                        userId: user.uid
                                     }
                                 )))
                             }}

@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { Container } from "react-bootstrap"
 import { Navigate, Route, Routes } from "react-router-dom"
 import { NewNote } from "./NewNote"
@@ -10,7 +10,9 @@ import { NoteLayout } from "./NoteLayout"
 import { Note } from "./Note"
 import { EditNote } from "./EditNote"
 import { SignUp } from "./Authenticate/SignUp"
-
+import { LogIn } from "./Authenticate/LogIn"
+import { useAuthState } from "react-firebase-hooks/auth"
+import { auth, getNotes, getTags, addNoteDB, addTagDB } from "../firebase"
 
 export type Note = {
   id: string,
@@ -23,23 +25,42 @@ export type RawNote = {
 export type RawNoteData = {
   title: string,
   markdown: string,
-  tagIds: string[]
+  tagIds: string[],
+  userId: string,
 }
 
 export type NoteData = {
   title: string,
   markdown: string,
-  tags: Tag[]
+  tags: Tag[],
+  userId: string
 }
 
 export type Tag = {
   id: string,
   label: string,
+  userId: string,
 }
 
 function App() {
   const [notes, setNotes] = useLocalStorage<RawNote[]>("NOTES", []);
   const [tags, setTags] = useLocalStorage<Tag[]>("TAGS", []);
+  const [user, loading, error] = useAuthState(auth);
+
+  useEffect(() => {
+      if (loading) return;
+      if (user) {
+        const fetchNotes = async () => {
+          const fetchedNotes = await getNotes(user.uid)
+          const fetchedTags = await getTags(user.uid)
+
+          setNotes(fetchedNotes as RawNote[]);
+          setTags(fetchedTags as Tag[])
+        }
+
+        fetchNotes();
+      }
+  }, [user, loading])
 
   const notesWithTags = useMemo(() => {
     return notes.map(note => {
@@ -48,13 +69,23 @@ function App() {
   }, [notes, tags])
 
   function onCreateNote({ tags, ...data}:  NoteData) {
+    if (user == null) return;
+
+    const newNote: RawNote = {...data, id: uuidV4(), tagIds: tags.map(tag => tag.id), userId: user.uid } 
+
+    addNoteDB(newNote)
+      
     setNotes(prevNotes => {
-      return [...prevNotes, {...data, id: uuidV4(), tagIds: tags.map(tag => tag.id)}]
+      return [...prevNotes, newNote]
     })
   }
 
   function addTag(tag: Tag) {
-    setTags(prev => [...prev, tag])
+    if (user == null) return;
+
+    addTagDB(tag)
+
+    setTags(prev => [...prev, {...tag, userId: user.uid }])
   }
 
   function onUpdateNote(id: string, { tags, ...data }: NoteData) {
@@ -102,6 +133,7 @@ function App() {
     <Route path="edit" element={<EditNote onSubmit={onUpdateNote} onAddTag={addTag} availableTags={tags} />} />
   </Route>
   <Route path="/signup" element={<SignUp />} />
+  <Route path="/login" element={<LogIn />} />
   <Route path="*" element={<Navigate to="/" />}/>
 </Routes>
 </Container>

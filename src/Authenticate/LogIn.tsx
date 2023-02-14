@@ -1,31 +1,26 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Button, Col, Container, Form, Row, Stack } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { registerWithEmailAndPassword, auth } from '../../firebase'
+import { Link, useNavigate } from "react-router-dom";
+import { logInWIthEmailAndPassword, signInWithGoogle, auth } from '../../firebase'
 import { useAuthState } from "react-firebase-hooks/auth";
 
-
-export function SignUp() {
-    const [name, setName] = useState("");
+export function LogIn() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [passwordConfirm, setPasswordConfirm] = useState("");
     const [user, loading, error] = useAuthState(auth);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (loading) return;
         if (user) alert("Created account");
     }, [user, loading]);
     
-    async function handleCreateAccount(e: FormEvent) {
+    async function handleLogIn(e: FormEvent) {
         e.preventDefault();
 
-        if (name == "" || email == "" || password == "") return alert("Please enter the fields")
-        if (passwordConfirm !== password) return alert("Passwords do not match")
-
         try {
-            await registerWithEmailAndPassword(name, email, password)
-            alert("account created")
+            await logInWIthEmailAndPassword(email, password)
+            alert("Logged in")
         } catch (err) {
             if (err instanceof Error) {
                 console.error(err)
@@ -46,16 +41,7 @@ export function SignUp() {
                 </Stack>
             </Col> */}
         </Row>
-        <Form onSubmit={handleCreateAccount}>
-            <Form.Group controlId="name">
-                <Form.Label>Your name:</Form.Label>
-                <Form.Control 
-                    type="text" 
-                    required 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)}
-                />
-            </Form.Group>
+        <Form onSubmit={handleLogIn}>
             <Form.Group controlId="email">
                 <Form.Label>Your email address:</Form.Label>
                 <Form.Control 
@@ -74,16 +60,8 @@ export function SignUp() {
                     onChange={e => setPassword(e.target.value)}
                 />
             </Form.Group>
-            <Form.Group controlId="passwordConfirm">
-                <Form.Label>Confirm your password:</Form.Label>
-                <Form.Control 
-                    type="password" 
-                    required  
-                    value={passwordConfirm}
-                    onChange={e => setPasswordConfirm(e.target.value)}
-                />
-            </Form.Group>
-            <Button type="submit">Create Account</Button>
+            <Button type="submit">Log In</Button>
+            <Button onClick={signInWithGoogle} type="button">Login with Google</Button>
         </Form> 
     </Container>
 }
