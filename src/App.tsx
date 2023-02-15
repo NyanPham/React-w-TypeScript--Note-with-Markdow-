@@ -12,12 +12,12 @@ import { EditNote } from "./EditNote"
 import { SignUp } from "./Authenticate/SignUp"
 import { LogIn } from "./Authenticate/LogIn"
 import { useAuthState } from "react-firebase-hooks/auth"
-import { auth, getNotes, getTags, addNoteDB, addTagDB } from "../firebase"
+import { auth, getNotes, getTags, addNoteDB, addTagDB, updateNoteDB } from "../firebase"
 
 export type Note = {
   id: string,
 } & NoteData
-
+  
 export type RawNote = {
   id: string,
 } & RawNoteData
@@ -89,10 +89,18 @@ function App() {
   }
 
   function onUpdateNote(id: string, { tags, ...data }: NoteData) {
+    if (user == null) return;
+
+    let updatedNote: RawNote | null;
+
     setNotes(prevNotes => {
       return prevNotes.map(note => {
         if (note.id === id) {
-          return {...note, ...data, tagIds: tags.map(tag => tag.id)}
+          updatedNote = {...note, ...data, tagIds: tags.map(tag => tag.id)}
+          
+          updateNoteDB(updatedNote);
+
+          return updatedNote
         } else {
           return note
         }

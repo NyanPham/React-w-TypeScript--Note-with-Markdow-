@@ -13,9 +13,12 @@ import {
     getFirestore,
     query,
     getDocs,
+    updateDoc,
     collection,
+    doc,
     where,
-    addDoc, 
+    addDoc,
+    getDoc, 
 } from 'firebase/firestore/lite'
 import { Note, NoteData, RawNote, Tag } from './src/App'
 
@@ -82,7 +85,8 @@ const signInWithGoogle = async () => {
 const getNotes = async (userId: string) => {
     const q = query(collection(db, 'notes'), where('userId', '==', userId))
     const noteSnapshot = await getDocs(q);
-    const noteList = noteSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    
+    const noteList = noteSnapshot.docs.map(doc => ({...doc.data(), id: doc.id }));
     return noteList;
 }
 
@@ -107,6 +111,21 @@ const getTags = async (userId: string) => {
 const addTagDB = async (tag: Tag) => {
     try {
         await addDoc(collection(db, "tags"), tag);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error(err)
+            alert(err.message)
+        }
+    }
+}
+
+const updateNoteDB = async(noteData: RawNote) => {
+    try {
+        const noteRef = doc(db, "notes", noteData.id);
+
+        await updateDoc(noteRef, {
+            ...noteData
+        });
     } catch (err) {
         if (err instanceof Error) {
             console.error(err)
@@ -172,4 +191,5 @@ export {
     getNotes,
     addNoteDB,
     addTagDB,
+    updateNoteDB
 }
