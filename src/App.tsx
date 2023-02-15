@@ -108,7 +108,7 @@ function App() {
       })
     })
   }
-
+    
   function onDeleteNote(id: string) {
     setNotes(prevNotes => {
       return prevNotes.filter(note => {
@@ -138,7 +138,7 @@ function App() {
       })
     })
   } 
-  
+
   function deleteTag(id: string) {
     setTags(prevTags => {
       return prevTags.filter(tag => {
