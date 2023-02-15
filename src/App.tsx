@@ -12,7 +12,7 @@ import { EditNote } from "./EditNote"
 import { SignUp } from "./Authenticate/SignUp"
 import { LogIn } from "./Authenticate/LogIn"
 import { useAuthState } from "react-firebase-hooks/auth"
-import { auth, getNotes, getTags, addNoteDB, addTagDB, updateNoteDB, updateTagDB } from "../firebase"
+import { auth, getNotes, getTags, addNoteDB, addTagDB, updateNoteDB, updateTagDB, deleteNoteDB, deleteTagDB } from "../firebase"
 
 export type Note = {
   id: string,
@@ -111,7 +111,15 @@ function App() {
 
   function onDeleteNote(id: string) {
     setNotes(prevNotes => {
-      return prevNotes.filter(note => note.id !== id)
+      return prevNotes.filter(note => {
+        if (note.id !== id) {
+          return true
+        } else {
+
+          deleteNoteDB(note.id)
+          return false
+        }
+      })
     })
   } 
 
@@ -130,10 +138,16 @@ function App() {
       })
     })
   } 
-
+  
   function deleteTag(id: string) {
     setTags(prevTags => {
-      return prevTags.filter(tag => tag.id !== id)
+      return prevTags.filter(tag => {
+        if (tag.id !== id) {
+          return true;
+        } else {
+          deleteTagDB(tag._id)  
+        }
+      })
     })
   }
 

@@ -18,7 +18,8 @@ import {
     doc,
     where,
     addDoc,
-    getDoc, 
+    getDoc,
+    deleteDoc, 
 } from 'firebase/firestore/lite'
 import { Note, NoteData, RawNote, Tag } from './src/App'
 
@@ -134,6 +135,33 @@ const updateNoteDB = async(noteData: RawNote) => {
     }
 }
 
+const deleteNoteDB = async(id: string) => {
+    try {
+        const noteRef = doc(db, "notes", id);
+
+        await deleteDoc(noteRef);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error(err)
+            alert(err.message)
+        }
+    }
+}
+
+    
+const deleteTagDB = async(id: string) => {
+    try {
+        const tagRef = doc(db, "tags", id);
+
+        await deleteDoc(tagRef);
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error(err)
+            alert(err.message)
+        }
+    }
+}
+
 const updateTagDB = async(tag: Tag) => {
     try {
         const noteRef = doc(db, "tags", tag._id);
@@ -189,11 +217,11 @@ const sendPasswordReset = async(email: string) => {
         }
     }
 }
-
+    
 const logout = () => {
     signOut(auth)
 }
-    
+
 export {
     auth,
     db,
@@ -207,5 +235,7 @@ export {
     addNoteDB,
     addTagDB,
     updateNoteDB,
-    updateTagDB
+    updateTagDB,
+    deleteNoteDB,
+    deleteTagDB
 }
