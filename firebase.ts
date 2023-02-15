@@ -104,10 +104,10 @@ const addNoteDB = async(noteData: RawNote) => {
 const getTags = async (userId: string) => {
     const q = query(collection(db, 'tags'), where('userId', '==', userId))
     const tagSnapshot = await getDocs(q);
-    const tagList = tagSnapshot.docs.map(doc => ({ ...doc.data()}));
+    const tagList = tagSnapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
     return tagList;
 }
-    
+
 const addTagDB = async (tag: Tag) => {
     try {
         await addDoc(collection(db, "tags"), tag);
@@ -125,6 +125,21 @@ const updateNoteDB = async(noteData: RawNote) => {
 
         await updateDoc(noteRef, {
             ...noteData
+        });
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error(err)
+            alert(err.message)
+        }
+    }
+}
+
+const updateTagDB = async(tag: Tag) => {
+    try {
+        const noteRef = doc(db, "tags", tag._id);
+
+        await updateDoc(noteRef, {
+            ...tag
         });
     } catch (err) {
         if (err instanceof Error) {
@@ -178,7 +193,7 @@ const sendPasswordReset = async(email: string) => {
 const logout = () => {
     signOut(auth)
 }
-
+    
 export {
     auth,
     db,
@@ -191,5 +206,6 @@ export {
     getNotes,
     addNoteDB,
     addTagDB,
-    updateNoteDB
+    updateNoteDB,
+    updateTagDB
 }

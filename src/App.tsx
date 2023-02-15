@@ -12,7 +12,7 @@ import { EditNote } from "./EditNote"
 import { SignUp } from "./Authenticate/SignUp"
 import { LogIn } from "./Authenticate/LogIn"
 import { useAuthState } from "react-firebase-hooks/auth"
-import { auth, getNotes, getTags, addNoteDB, addTagDB, updateNoteDB } from "../firebase"
+import { auth, getNotes, getTags, addNoteDB, addTagDB, updateNoteDB, updateTagDB } from "../firebase"
 
 export type Note = {
   id: string,
@@ -38,6 +38,7 @@ export type NoteData = {
 
 export type Tag = {
   id: string,
+  _id: string,
   label: string,
   userId: string,
 }
@@ -118,7 +119,11 @@ function App() {
     setTags(prevTags => {
       return prevTags.map(tag => {
         if (tag.id === id) {
-          return {...tag, label}
+          const updatedTag = {...tag, label}
+
+          updateTagDB(updatedTag)
+
+          return updatedTag
         } else {
           return tag
         }
